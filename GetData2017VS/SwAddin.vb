@@ -12,13 +12,13 @@ Imports SolidWorksTools.File
 Imports System.Collections.Generic
 Imports System.Diagnostics
 
-<Guid("94581b28-b61a-41a3-a676-67d6aa8ec197")> _
-<ComVisible(True)> _
-<SwAddin( _
-        Description:="GetData2017VS description", _
-        Title:="GetData2017VS", _
-        LoadAtStartup:=True _
-        )> _
+<Guid("ECE6BAEE-B111-4314-B6E9-3367C41E4C07")>
+<ComVisible(True)>
+<SwAddin(
+        Description:="GetData2017VS description",
+        Title:="GetData",
+        LoadAtStartup:=True
+        )>
 Public Class SwAddin
     Implements SolidWorks.Interop.swpublished.SwAddin
 
@@ -30,6 +30,9 @@ Public Class SwAddin
     Dim SwEventPtr As SldWorks
     Dim ppage As UserPMPage
     Dim iBmp As BitmapHandler
+
+    Dim swTaskPane As TaskpaneView
+    Dim taskPaneHost As GetData
 
     Public Const mainCmdGroupID As Integer = 0
     Public Const mainItemID1 As Integer = 0
@@ -115,46 +118,70 @@ Public Class SwAddin
 
 #Region "ISwAddin Implementation"
 
-    Function ConnectToSW(ByVal ThisSW As Object, ByVal Cookie As Integer) As Boolean Implements SolidWorks.Interop.swpublished.SwAddin.ConnectToSW
+    Function ConnectToSW(ByVal ThisSW As Object, ByVal Cookie As Integer) As Boolean Implements ISwAddin.ConnectToSW
+
         iSwApp = ThisSW
+
         addinID = Cookie
 
         ' Setup callbacks
-        iSwApp.SetAddinCallbackInfo(0, Me, addinID)
+
+        'iSwApp.SetAddinCallbackInfo(0, Me, addinID)
 
         ' Setup the Command Manager
-        iCmdMgr = iSwApp.GetCommandManager(Cookie)
-        AddCommandMgr()
+
+        'iCmdMgr = iSwApp.GetCommandManager(Cookie)
+
+        'AddCommandMgr()
 
         'Setup the Event Handlers
-        SwEventPtr = iSwApp
-        openDocs = New Hashtable
-        AttachEventHandlers()
+
+        'SwEventPtr = iSwApp
+
+        'openDocs = New Hashtable
+
+        'AttachEventHandlers()
 
         'Setup Sample Property Manager
-        AddPMP()
+
+        'AddPMP()
+
+        AddTaskPane()
 
         ConnectToSW = True
+
     End Function
 
-    Function DisconnectFromSW() As Boolean Implements SolidWorks.Interop.swpublished.SwAddin.DisconnectFromSW
+    Function DisconnectFromSW() As Boolean Implements ISwAddin.DisconnectFromSW
 
-        RemoveCommandMgr()
-        RemovePMP()
-        DetachEventHandlers()
+        RemoveTaskPane()
 
-        System.Runtime.InteropServices.Marshal.ReleaseComObject(iCmdMgr)
-        iCmdMgr = Nothing
-        System.Runtime.InteropServices.Marshal.ReleaseComObject(iSwApp)
+        'RemoveCommandMgr()
+
+        'RemovePMP()
+
+        'DetachEventHandlers()
+
+        'System.Runtime.InteropServices.Marshal.ReleaseComObject(iCmdMgr)
+
+        'iCmdMgr = Nothing
+
+        'System.Runtime.InteropServices.Marshal.ReleaseComObject(iSwApp)
+
         iSwApp = Nothing
-        'The addin _must_ call GC.Collect() here in order to retrieve all managed code pointers 
+
+        'The addin _must_ call GC.Collect() here in order to retrieve all managed code pointers
+
         GC.Collect()
+
         GC.WaitForPendingFinalizers()
 
         GC.Collect()
+
         GC.WaitForPendingFinalizers()
 
         DisconnectFromSW = True
+
     End Function
 #End Region
 
@@ -314,6 +341,32 @@ Public Class SwAddin
 
         Return True
     End Function
+
+    Public Sub AddTaskPane()
+        Dim bitmap As String
+        bitmap = "GetData.png"
+        swTaskPane = SwApp.CreateTaskpaneView2(bitmap, "Get Data")
+        taskPaneHost = swTaskPane.AddControl("GetData.SWTaskPane_SwAddin", "")
+        taskPaneHost.getSwApp(SwApp)
+    End Sub
+
+    Public Sub RemoveTaskPane()
+
+        Try
+
+            taskPaneHost = Nothing
+
+            swTaskPane.DeleteView()
+
+            Marshal.ReleaseComObject(taskPaneHost)
+
+            taskPaneHost = Nothing
+
+        Catch ex As Exception
+
+        End Try
+
+    End Sub
 #End Region
 
 #Region "Event Methods"
