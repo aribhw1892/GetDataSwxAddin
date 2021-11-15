@@ -343,6 +343,7 @@ Public Class SwAddin
     End Function
 
     Public Sub AddTaskPane()
+        'TestCommit
         Dim bitmap As String
         bitmap = "GetData.png"
         swTaskPane = SwApp.CreateTaskpaneView2(bitmap, "Get Data")
